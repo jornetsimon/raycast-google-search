@@ -1,16 +1,20 @@
-import { Action, ActionPanel, Icon, List } from '@raycast/api';
+import { Action, ActionPanel, Icon, LaunchProps, List } from '@raycast/api';
 import { getFavicon } from '@raycast/utils';
 import { useState } from 'react';
 import { search } from './google-search.service';
 import { SearchResult } from './model/search-result.model';
 
-export default function Command() {
+export default function Command(props: LaunchProps) {
 	const [searchText, setSearchText] = useState('');
 	const { data, isLoading } = search(searchText);
 
-	const defaultView = (
+	const emptyView = (
 		<List.EmptyView icon={Icon.MagnifyingGlass} title="Type something to get started" />
 	);
+
+	const loadingView = <List.EmptyView icon={Icon.Waveform} />;
+
+	const isLaunchedWithParam = props.arguments?.query === undefined;
 
 	return (
 		<List
@@ -19,15 +23,17 @@ export default function Command() {
 			searchBarPlaceholder="Search Google..."
 			throttle
 		>
-			{!searchText
-				? defaultView
-				: data?.map((searchResult) => (
-						<SearchListItem
-							key={searchResult.link}
-							searchTerm={searchText}
-							searchResult={searchResult}
-						/>
-					))}
+			{isLoading && isLaunchedWithParam
+				? loadingView
+				: !searchText
+					? emptyView
+					: data?.map((searchResult) => (
+							<SearchListItem
+								key={searchResult.link}
+								searchTerm={searchText}
+								searchResult={searchResult}
+							/>
+						))}
 		</List>
 	);
 }
