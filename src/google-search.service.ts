@@ -12,6 +12,8 @@ export function search(query: string): AsyncState<SearchResult[]> {
 		q: query,
 		cx: preferences.googleSearchEngineId,
 		key: preferences.googleApiKey,
+		gl: 'fr',
+		hl: 'fr',
 	});
 
 	return useFetch(`${API_BASE_URL}?${params}`, {
