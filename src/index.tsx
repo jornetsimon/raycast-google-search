@@ -6,21 +6,10 @@ import { SearchResult } from './model/search-result.model';
 
 export default function Command(props: LaunchProps) {
 	const [searchText, setSearchText] = useState('');
-	const processedBangRef = useRef<string | null>(null);
 
 	const fallbackQuery = props.fallbackText;
 
-	useEffect(() => {
-		const bangRegex = /!\w+/;
-		const hasBang = fallbackQuery ? bangRegex.test(fallbackQuery) : false;
-
-		if (fallbackQuery && hasBang && processedBangRef.current !== fallbackQuery) {
-			processedBangRef.current = fallbackQuery;
-			open(`https://unduck.link?q=${encodeURIComponent(fallbackQuery)}`).then(() =>
-				popToRoot()
-			);
-		}
-	}, [props.fallbackText]);
+	useBangRedirect(fallbackQuery);
 
 	const { data, isLoading } = searchGoogle(searchText);
 
@@ -85,4 +74,20 @@ function SearchListItem({
 			}
 		/>
 	);
+}
+
+function useBangRedirect(fallbackText: string | undefined) {
+	const processedBangRef = useRef<string | null>(null);
+	const bangRegex = /!\w+/;
+
+	useEffect(() => {
+		const hasBang = fallbackText ? bangRegex.test(fallbackText) : false;
+
+		if (fallbackText && hasBang && processedBangRef.current !== fallbackText) {
+			processedBangRef.current = fallbackText;
+			open(`https://unduck.link?q=${encodeURIComponent(fallbackText)}`).then(() =>
+				popToRoot()
+			);
+		}
+	}, [fallbackText]);
 }
