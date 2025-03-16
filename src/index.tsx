@@ -13,6 +13,8 @@ export default function Command(props: LaunchProps) {
 
 	const { data, isLoading } = searchGoogle(searchText);
 
+	useQuickRedirect(fallbackQuery, data ?? []);
+
 	const emptyView = (
 		<List.EmptyView icon={Icon.MagnifyingGlass} title="Type something to get started" />
 	);
@@ -90,4 +92,23 @@ function useBangRedirect(fallbackText: string | undefined) {
 			);
 		}
 	}, [fallbackText]);
+}
+
+function useQuickRedirect(fallbackText: string | undefined, searchResults: SearchResult[]) {
+	const processedBangRef = useRef<string | null>(null);
+	const bangRegex = /\w+\s?!(?!\s)$/;
+
+	useEffect(() => {
+		const hasBang = fallbackText ? bangRegex.test(fallbackText) : false;
+
+		if (
+			fallbackText &&
+			searchResults.length &&
+			hasBang &&
+			processedBangRef.current !== fallbackText
+		) {
+			processedBangRef.current = fallbackText;
+			open(searchResults[0].link).then(() => popToRoot());
+		}
+	}, [fallbackText, searchResults]);
 }
