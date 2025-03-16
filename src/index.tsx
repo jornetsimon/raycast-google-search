@@ -66,6 +66,16 @@ function SearchListItem({
 						url={`https://www.google.com/search?q=${searchTerm}`}
 						shortcut={{ modifiers: ['cmd'], key: 'enter' }}
 					/>
+					<Action.Open
+						title="Search in Perplexity..."
+						target={`raycast://extensions/raycast/raycast-ai/ai-chat?fallbackText=${searchTerm}`}
+						shortcut={{ modifiers: ['cmd', 'shift'], key: 'enter' }}
+					/>
+					<Action.OpenInBrowser
+						title="Search in Perplexity..."
+						url={`https://www.perplexity.ai?q=${searchTerm}`}
+						shortcut={{ modifiers: ['cmd', 'shift', 'opt'], key: 'enter' }}
+					/>
 					<ActionPanel.Section>
 						<Action.CopyToClipboard
 							title="Copy URL"
