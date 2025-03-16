@@ -1,12 +1,19 @@
-import { Action, ActionPanel, Icon, LaunchProps, List } from '@raycast/api';
+import { Action, ActionPanel, Icon, LaunchProps, List, open, popToRoot } from '@raycast/api';
 import { getFavicon } from '@raycast/utils';
-import { useState } from 'react';
-import { search } from './google-search.service';
+import { useEffect, useRef, useState } from 'react';
+import { search as searchGoogle } from './google-search.service';
 import { SearchResult } from './model/search-result.model';
 
 export default function Command(props: LaunchProps) {
 	const [searchText, setSearchText] = useState('');
-	const { data, isLoading } = search(searchText);
+
+	const fallbackQuery = props.fallbackText;
+
+	useBangRedirect(fallbackQuery);
+
+	const { data, isLoading } = searchGoogle(searchText);
+
+	useQuickRedirect(fallbackQuery, data ?? []);
 
 	const emptyView = (
 		<List.EmptyView icon={Icon.MagnifyingGlass} title="Type something to get started" />
@@ -69,4 +76,39 @@ function SearchListItem({
 			}
 		/>
 	);
+}
+
+function useBangRedirect(fallbackText: string | undefined) {
+	const processedBangRef = useRef<string | null>(null);
+	const bangRegex = /!\w+/;
+
+	useEffect(() => {
+		const hasBang = fallbackText ? bangRegex.test(fallbackText) : false;
+
+		if (fallbackText && hasBang && processedBangRef.current !== fallbackText) {
+			processedBangRef.current = fallbackText;
+			open(`https://unduck.link?q=${encodeURIComponent(fallbackText)}`).then(() =>
+				popToRoot()
+			);
+		}
+	}, [fallbackText]);
+}
+
+function useQuickRedirect(fallbackText: string | undefined, searchResults: SearchResult[]) {
+	const processedBangRef = useRef<string | null>(null);
+	const bangRegex = /\w+\s?!(?!\s)$/;
+
+	useEffect(() => {
+		const hasBang = fallbackText ? bangRegex.test(fallbackText) : false;
+
+		if (
+			fallbackText &&
+			searchResults.length &&
+			hasBang &&
+			processedBangRef.current !== fallbackText
+		) {
+			processedBangRef.current = fallbackText;
+			open(searchResults[0].link).then(() => popToRoot());
+		}
+	}, [fallbackText, searchResults]);
 }
